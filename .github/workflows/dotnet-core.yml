@@ -8,15 +8,15 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
+      
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.301
+        dotnet-version: 3.1.
+        
     - name: Cache
       id: cache
       uses: actions/cache@v2.1.1
@@ -27,8 +27,29 @@ jobs:
         key: ${{ runner.os }}-nuget-v2-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
           ${{ runner.os }}-nuget-v2-
+    
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet restore
+    
     - name: Build
       run: dotnet build --configuration Release --no-restore
+    
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: BooruViewer.Interop
+        path:  "${{ github.workspace }}/bin/Release"
+        
+  deploy:
+    if: startsWith(github.ref, 'refs/tags/') != true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: BooruViewer.Interop
+      - name: Publish Nuget Package
+        run: dotnet nuget push ${{ github.workspace }}/*.nupkg --skip-duplicate --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        
+        

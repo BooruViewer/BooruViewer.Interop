@@ -19,17 +19,6 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
-        
-    - name: Cache
-      id: cache
-      uses: actions/cache@v2.1.1
-      with:
-        path: |
-          ~/.nuget/packages
-          ${{ github.workspace }}/obj/project.assets.json
-        key: ${{ runner.os }}-nuget-v2-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-v2-
     
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'

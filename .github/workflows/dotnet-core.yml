@@ -21,10 +21,12 @@ jobs:
       id: cache
       uses: actions/cache@v2.1.1
       with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        path: |
+          ~/.nuget/packages
+          ${{ github.workspace }}/obj/project.assets.json
+        key: ${{ runner.os }}-nuget-v2-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-nuget-
+          ${{ runner.os }}-nuget-v2-
     - name: Install dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       run: dotnet restore

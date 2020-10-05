@@ -72,14 +72,15 @@ namespace BooruViewer.Interop.Boorus
             static Func<String, Tag> GetTagFromString(TagTypes type)
                 => tag => new Tag(tag, type);
             static String[] Split(String str)
-                => str.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                => str?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new String[0];
 
             var post = new BooruPost();
             post.Id = danbooru.Id;
             post.ParentId = danbooru.ParentId;
             // TODO: Make runtime safe
-            post.ChildIds = Split(danbooru.ChildrenIds)
-                .Select(s => UInt64.Parse(s)).ToList();
+            if (!String.IsNullOrWhiteSpace(danbooru.ChildrenIds))
+                post.ChildIds = Split(danbooru.ChildrenIds)
+                    .Select(s => UInt64.Parse(s)).ToList();
 
             post.IsVisible = !String.IsNullOrWhiteSpace(danbooru.FileUrl);
             post.IsPending = danbooru.IsPending;

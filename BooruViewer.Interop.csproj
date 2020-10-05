@@ -4,6 +4,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>        
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <Version>1.0.2</Version>
     </PropertyGroup>
 
     <ItemGroup>

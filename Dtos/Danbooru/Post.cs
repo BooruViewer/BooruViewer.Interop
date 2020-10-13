@@ -50,7 +50,7 @@ namespace BooruViewer.Interop.Dtos.Danbooru
         public String FileExt { get; set; }
         public UInt64 FileSize { get; set; }
         public String FileUrl { get; set; }
-        public Boolean HasLarge { get; set; }
+        public Boolean? HasLarge { get; set; }
         public String LargeFileUrl { get; set; }
         public String PreviewFileUrl { get; set; }
 

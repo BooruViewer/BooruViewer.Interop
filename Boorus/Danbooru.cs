@@ -54,10 +54,15 @@ namespace BooruViewer.Interop.Boorus
 
                 var previewUrl = db.LargeFileUrl;
                 var originalUrl = db.FileUrl;
-                if (!db.HasLarge)
+                if (db.HasLarge.HasValue && !db.HasLarge.Value)
                     previewUrl = originalUrl;
 
-                return new Files(db.PreviewFileUrl, previewUrl, originalUrl, db.FileSize);
+                var files = new Files(db.PreviewFileUrl, previewUrl, originalUrl, db.FileSize);
+
+                if (!db.HasLarge.HasValue && files.IsVideo)
+                    files.Preview = db.PreviewFileUrl; // It's a small thumbnail, but best we can do for videos
+
+                return files;
             }
             static Size GetSizeFromSource(UInt64 width, UInt64 height)
                 => new Size(width, height);

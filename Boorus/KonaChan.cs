@@ -9,10 +9,8 @@ namespace BooruViewer.Interop.Boorus
     {
         private static SourceBooru _sourceBooru = new SourceBooru("konachan", "Konachan", new Uri("https://konachan.com/"));
 
-        public override SourceBooru Booru => _sourceBooru;
-
         // ReSharper disable once SuggestBaseTypeForParameter
-        public KonaChan(IKonachanApi api) : base(api)
+        public KonaChan(IKonachanApi api) : base(api, _sourceBooru)
         { }
     }
 }

@@ -17,13 +17,16 @@ namespace BooruViewer.Interop.Boorus.Abstract
             {TagTypes.Copyright, TagTypes.Character, TagTypes.Artist, TagTypes.General, TagTypes.Meta};
 
         private readonly IMoebooruApi _api;
-        private Dictionary<String, TagTypes> _tagMap; 
-        
-        public abstract SourceBooru Booru { get; }
+        private Dictionary<String, TagTypes> _tagMap;
 
-        public Moebooru(IMoebooruApi api)
+        private SourceBooru _sourceBooru;
+
+        public SourceBooru Booru => this._sourceBooru;
+
+        public Moebooru(IMoebooruApi api, SourceBooru sourceBooru)
         {
             this._api = api;
+            this._sourceBooru = sourceBooru;
         }
         
         public async Task<IEnumerable<BooruPost>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100)

@@ -26,7 +26,6 @@ namespace BooruViewer.Interop.Extensions
                     Converters =
                     {
                         new StringEnumConverter(),
-                        new UnixDateTimeConverter(),
                     },
                 })
             };

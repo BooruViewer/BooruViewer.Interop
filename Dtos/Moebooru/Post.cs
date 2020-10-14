@@ -1,4 +1,6 @@
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace BooruViewer.Interop.Dtos.Moebooru
 {
@@ -13,9 +15,13 @@ namespace BooruViewer.Interop.Dtos.Moebooru
 
         public Int32 Score { get; set; }
 
+        [JsonConverter(typeof(UnixDateTimeConverter))]
         public DateTime CreatedAt { get; set; }
+        [JsonConverter(typeof(UnixDateTimeConverter))]
         public DateTime? UpdatedAt { get; set; }
+        [JsonConverter(typeof(UnixDateTimeConverter))]
         public DateTime? LastNotedAt { get; set; }
+        [JsonConverter(typeof(UnixDateTimeConverter))]
         public DateTime? LastCommentedAt { get; set; }
 
         public UInt32 CreatorId { get; set; }

@@ -12,9 +12,17 @@ using Post = BooruViewer.Interop.Dtos.Danbooru.Post;
 
 namespace BooruViewer.Interop.Boorus
 {
-    public class Danbooru
+    public class Danbooru : IBooru
     {
         private IDanbooruApi _api;
+        private static SourceBooru _sourceBooru;
+
+        public SourceBooru Booru => _sourceBooru;
+
+        static Danbooru()
+        {
+            _sourceBooru = new SourceBooru("danbooru", "Danbooru", new Uri("https://danbooru.donmai.us/"));
+        }
 
         public Danbooru(IDanbooruApi api)
         {
@@ -66,8 +74,8 @@ namespace BooruViewer.Interop.Boorus
             }
             static Size GetSizeFromSource(UInt64 width, UInt64 height)
                 => new Size(width, height);
-            static Uploader GetUploaderFromSource(Post db)
-                => new Uploader(db.UploaderName, $"https://danbooru.donmai.us/users/{db.UploaderId}");
+            Uploader GetUploaderFromSource(Post db)
+                => new Uploader(db.UploaderName, $"{this.Booru.BaseUri}users/{db.UploaderId}");
             static Source GetSourceFromSource(Post db)
             {
                 if (Uri.TryCreate(db.Source, UriKind.Absolute, out var sauce))

@@ -1,4 +1,5 @@
 using System;
+using BooruViewer.Interop.Boorus;
 using BooruViewer.Interop.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -30,10 +31,38 @@ namespace BooruViewer.Interop.Extensions
             };
         }
 
+        public static IServiceCollection WithAllBoorus(this IServiceCollection services,
+            RefitSettings refitSettings = null)
+        {
+            return services.WithDanbooru()
+                .WithYandere()
+                .WithDanbooru();
+        }
+
         public static IServiceCollection WithDanbooru(this IServiceCollection services, RefitSettings refitSettings = null)
         {
             services.AddRefitClient<IDanbooruApi>(refitSettings ?? RefitSettings)
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri(Constants.DanbooruBaseUrl));
+
+            services.AddSingleton<IBooru, Danbooru>();
+            return services;
+        }
+
+        public static IServiceCollection WithYandere(this IServiceCollection services, RefitSettings refitSettings = null)
+        {
+            services.AddRefitClient<IYandereApi>(refitSettings ?? RefitSettings)
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(Constants.YandereBaseUrl));
+
+            services.AddSingleton<IBooru, Yandere>();
+            return services;
+        }
+
+        public static IServiceCollection WithKonachan(this IServiceCollection services, RefitSettings refitSettings = null)
+        {
+            services.AddRefitClient<IKonachanApi>(refitSettings ?? RefitSettings)
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(Constants.KonaChanBaseUrl));
+
+            services.AddSingleton<IBooru, KonaChan>();
             return services;
         }
     }

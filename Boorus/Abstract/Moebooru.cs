@@ -70,7 +70,7 @@ namespace BooruViewer.Interop.Boorus.Abstract
                 => new Uploader(db.Author, $"{this.Booru.BaseUri}user/show/{db.CreatorId}");
             static Source GetSourceFromSource(Post mb)
             {
-                if (Uri.TryCreate(mb.Source, UriKind.Absolute, out var sauce))
+                if (!Uri.TryCreate(mb.Source, UriKind.Absolute, out var sauce))
                     return String.IsNullOrWhiteSpace(mb.Source) ? null : new Source(mb.Source, null);
                 return new Source(sauce.Host, sauce.ToString());
             }

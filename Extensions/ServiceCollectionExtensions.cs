@@ -36,7 +36,7 @@ namespace BooruViewer.Interop.Extensions
         {
             return services.WithDanbooru()
                 .WithYandere()
-                .WithDanbooru();
+                .WithKonachan();
         }
 
         public static IServiceCollection WithDanbooru(this IServiceCollection services, RefitSettings refitSettings = null)

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using BooruViewer.Interop.Dtos.Booru;
 using BooruViewer.Interop.Dtos.Booru.Posts;
 using BooruViewer.Interop.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
 using BooruPost = BooruViewer.Interop.Dtos.Booru.Posts.Post;
 using Post = BooruViewer.Interop.Dtos.Moebooru.Post;
 
@@ -17,16 +20,17 @@ namespace BooruViewer.Interop.Boorus.Abstract
             {TagTypes.Copyright, TagTypes.Character, TagTypes.Artist, TagTypes.General, TagTypes.Meta};
 
         private readonly IMoebooruApi _api;
-        private Dictionary<String, TagTypes> _tagMap;
 
         private SourceBooru _sourceBooru;
+        private readonly IDistributedCache _cache;
 
         public SourceBooru Booru => this._sourceBooru;
 
-        public Moebooru(IMoebooruApi api, SourceBooru sourceBooru)
+        public Moebooru(IMoebooruApi api, SourceBooru sourceBooru, IDistributedCache cache)
         {
             this._api = api;
             this._sourceBooru = sourceBooru;
+            this._cache = cache;
         }
         
         public async Task<IEnumerable<BooruPost>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100)
@@ -36,15 +40,18 @@ namespace BooruViewer.Interop.Boorus.Abstract
             if (limit == 0)
                 throw new ArgumentException($"{nameof(limit)} cannot be zero.", nameof(limit));
 
-            if (this._tagMap == null)
-                await this.GetTagMap();
-
             var posts = await this._api.GetPostsAsync(tags, page, limit);
+            var booruPosts = new List<BooruPost>();
 
-            return posts.Select(this.MapPost);
+            foreach (var post in posts)
+            {
+                booruPosts.Add(await this.MapPost(post));
+            }
+
+            return booruPosts;
         }
 
-        private BooruPost MapPost(Post moebooru)
+        private async Task<BooruPost> MapPost(Post moebooru)
         {
             static Rating GetRatingFromSource(String rating)
             {
@@ -74,8 +81,13 @@ namespace BooruViewer.Interop.Boorus.Abstract
                     return String.IsNullOrWhiteSpace(mb.Source) ? null : new Source(mb.Source, null);
                 return new Source(sauce.Host, sauce.ToString());
             }
+
             Func<String, Tag> GetTagFromString()
-                => tag => new Tag(tag, this._tagMap[tag]);
+            {
+
+                return null;
+            }
+
             static String[] Split(String str)
                 => str?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new String[0];
 
@@ -105,19 +117,48 @@ namespace BooruViewer.Interop.Boorus.Abstract
             post.Uploader = GetUploaderFromSource(moebooru);
             post.Source = GetSourceFromSource(moebooru);
 
-            var tagFunc = GetTagFromString();
-
-            post.Tags = Split(moebooru.Tags)
-                .Select(tagFunc)
-                .OrderBy(t => Array.IndexOf(TagsOrder, t.Type))
-                .ThenBy(t => t.Name)
-                .ToList();
+            post.Tags = await this.GetTagsListAsync(moebooru.Tags);
 
             return post;
         }
 
-        private async Task GetTagMap()
+        private async Task<List<Tag>> GetTagsListAsync(String tags)
         {
+            var tagObjs = new List<Tag>();
+
+            var tagStrings = tags.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var tagMap = await this.GetTagsMapAsync();
+            var hasForced = false;
+
+            foreach (var tagString in tagStrings)
+            {
+                if (!tagMap.ContainsKey(tagString))
+                {
+                    if (hasForced)
+                        continue; // Skip this tag, we don't care about it :D
+
+                    await this.GetTagsMapAsync(true);
+                    hasForced = true;
+                }
+
+                tagObjs.Add(new Tag(tagString, tagMap[tagString]));
+            }
+
+
+            return tagObjs
+                .OrderBy(t => Array.IndexOf(TagsOrder, t.Type))
+                .ThenBy(t => t.Name)
+                .ToList();
+        }
+
+        private async Task<Dictionary<String, TagTypes>> GetTagsMapAsync(Boolean forceDownload = false)
+        {
+            var cachedTagBytes = await this._cache.GetAsync($"moebooru__{this.GetType().Name}_tags");
+            if (cachedTagBytes?.Length >= 0 && !forceDownload)
+            {
+                return JsonConvert.DeserializeObject<Dictionary<String, TagTypes>>(Encoding.UTF8.GetString(cachedTagBytes));
+            }
+
             var tags = await this._api.GetTagsAsync();
 
             TagTypes Convert(Int32 type)
@@ -135,7 +176,10 @@ namespace BooruViewer.Interop.Boorus.Abstract
 
             var dict = tags.ToDictionary(tag => tag.Name, tag => Convert(tag.Type));
 
-            this._tagMap = dict;
+            await this._cache.SetAsync($"moebooru__{this.GetType().Name}_tags",
+                Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(dict)));
+
+            return dict;
         }
     }
 }

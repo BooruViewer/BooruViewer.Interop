@@ -4,11 +4,12 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>        
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-        <Version>1.1.1</Version>
+        <Version>1.2.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.8" />
+      <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="3.1.9" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.9" />
       <PackageReference Include="Refit.HttpClientFactory" Version="5.2.1" />
     </ItemGroup>
 

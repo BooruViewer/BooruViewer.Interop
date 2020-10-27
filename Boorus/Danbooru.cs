@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using BooruViewer.Interop.Dtos.Booru;
 using BooruViewer.Interop.Dtos.Booru.Posts;
@@ -14,8 +15,10 @@ namespace BooruViewer.Interop.Boorus
 {
     public class Danbooru : IBooru
     {
-        private IDanbooruApi _api;
         private static SourceBooru _sourceBooru;
+
+        private String _authHeader = null;
+        private IDanbooruApi _api;
 
         public SourceBooru Booru => _sourceBooru;
 
@@ -29,6 +32,13 @@ namespace BooruViewer.Interop.Boorus
             this._api = api;
         }
 
+        public IBooru WithAuthentication(String username, String password)
+        {
+            var bytes = Encoding.UTF8.GetBytes($"{username}:{password}");
+            this._authHeader = "Basic: " + Convert.ToBase64String(bytes, 0, bytes.Length);
+            return this;
+        }
+
         public async Task<IEnumerable<BooruPost>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100)
         {
             if (page == 0)
@@ -36,10 +46,9 @@ namespace BooruViewer.Interop.Boorus
             if (limit == 0)
                 throw new ArgumentException($"{nameof(limit)} cannot be zero.", nameof(limit));
 
-            // TODO: Support authentication?
-            var posts = await this._api.GetPostsAsync(tags, page, limit);
+            var posts = await this._api.GetPostsAsync(tags, page, limit, this._authHeader);
 
-            return posts.Select(p => this.MapPost(p));
+            return posts.Select(this.MapPost);
         }
 
         private BooruPost MapPost(Post danbooru)

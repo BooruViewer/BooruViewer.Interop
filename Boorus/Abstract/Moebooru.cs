@@ -32,7 +32,14 @@ namespace BooruViewer.Interop.Boorus.Abstract
             this._sourceBooru = sourceBooru;
             this._cache = cache;
         }
-        
+
+        /// <summary>Not implemented</summary>
+        public IBooru WithAuthentication(String username, String password)
+        {
+            // throw new NotImplementedException();
+            return this;
+        }
+
         public async Task<IEnumerable<BooruPost>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100)
         {
             if (page == 0)

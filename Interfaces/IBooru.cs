@@ -12,5 +12,7 @@ namespace BooruViewer.Interop.Interfaces
         SourceBooru Booru { get; }
 
         Task<IEnumerable<Post>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100);
+
+        IBooru WithAuthentication(String username, String password);
     }
 }

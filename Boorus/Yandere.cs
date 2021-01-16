@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using BooruViewer.Interop.Boorus.Abstract;
 using BooruViewer.Interop.Dtos.Booru;
 using BooruViewer.Interop.Interfaces;

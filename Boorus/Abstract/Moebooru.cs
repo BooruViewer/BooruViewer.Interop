@@ -33,19 +33,12 @@ namespace BooruViewer.Interop.Boorus.Abstract
             this._cache = cache;
         }
 
-        /// <summary>Not implemented</summary>
-        public IBooru WithAuthentication(String username, String password)
-        {
-            // throw new NotImplementedException();
-            return this;
-        }
-
         public async Task<IEnumerable<BooruPost>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100)
         {
-            if (page == 0)
+            if (page <= 0)
                 throw new ArgumentException($"{nameof(page)} cannot be zero.", nameof(page));
-            if (limit == 0)
-                throw new ArgumentException($"{nameof(limit)} cannot be zero.", nameof(limit));
+            if (limit <= 1)
+                throw new ArgumentException($"{nameof(limit)} cannot be less than one.", nameof(limit));
 
             var posts = await this._api.GetPostsAsync(tags, page, limit);
             var booruPosts = new List<BooruPost>();
@@ -88,15 +81,6 @@ namespace BooruViewer.Interop.Boorus.Abstract
                     return String.IsNullOrWhiteSpace(mb.Source) ? null : new Source(mb.Source, null);
                 return new Source(sauce.Host, sauce.ToString());
             }
-
-            Func<String, Tag> GetTagFromString()
-            {
-
-                return null;
-            }
-
-            static String[] Split(String str)
-                => str?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new String[0];
 
             var post = new BooruPost();
             post.Id = moebooru.Id;

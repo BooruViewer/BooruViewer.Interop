@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace BooruViewer.Interop.Boorus
 {
-    public class KonaChan: Moebooru
+    public class KonaChan : Moebooru
     {
         private static SourceBooru _sourceBooru = new SourceBooru("konachan", "Konachan", new Uri("https://konachan.com/"));
 

@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using BooruViewer.Interop.Dtos.Booru;
 using BooruViewer.Interop.Dtos.Booru.Posts;
-using BooruViewer.Interop.Dtos.Danbooru;
+using BooruViewer.Interop.Extensions;
 using BooruViewer.Interop.Interfaces;
-using Refit;
+using BooruViewer.Interop.Options;
+using Microsoft.Extensions.Options;
 using BooruPost = BooruViewer.Interop.Dtos.Booru.Posts.Post;
 using Post = BooruViewer.Interop.Dtos.Danbooru.Post;
 
@@ -17,8 +18,8 @@ namespace BooruViewer.Interop.Boorus
     {
         private static SourceBooru _sourceBooru;
 
-        private String _authHeader = null;
         private IDanbooruApi _api;
+        private IOptionsMonitor<BooruAuthOptions> _options;
 
         public SourceBooru Booru => _sourceBooru;
 
@@ -27,26 +28,20 @@ namespace BooruViewer.Interop.Boorus
             _sourceBooru = new SourceBooru("danbooru", "Danbooru", new Uri("https://danbooru.donmai.us/"));
         }
 
-        public Danbooru(IDanbooruApi api)
+        public Danbooru(IDanbooruApi api, IOptionsMonitor<BooruAuthOptions> options)
         {
             this._api = api;
-        }
-
-        public IBooru WithAuthentication(String username, String password)
-        {
-            var bytes = Encoding.UTF8.GetBytes($"{username}:{password}");
-            this._authHeader = "Basic: " + Convert.ToBase64String(bytes, 0, bytes.Length);
-            return this;
+            this._options = options;
         }
 
         public async Task<IEnumerable<BooruPost>> GetPostsAsync(String tags, UInt64 page = 1, UInt64 limit = 100)
         {
-            if (page == 0)
+            if (page <= 0)
                 throw new ArgumentException($"{nameof(page)} cannot be zero.", nameof(page));
-            if (limit == 0)
-                throw new ArgumentException($"{nameof(limit)} cannot be zero.", nameof(limit));
+            if (limit <= 1)
+                throw new ArgumentException($"{nameof(limit)} cannot less than one.", nameof(limit));
 
-            var posts = await this._api.GetPostsAsync(tags, page, limit, this._authHeader);
+            var posts = await this._api.GetPostsAsync(tags, page, limit, this.GetAuthHeader());
 
             return posts.Select(this.MapPost);
         }
@@ -135,6 +130,16 @@ namespace BooruViewer.Interop.Boorus
                 .ToList();
 
             return post;
+        }
+
+        private String GetAuthHeader()
+        {
+            var options = this._options.Get(this.Booru.Identifier);
+            if (options.Username.IsEmpty() || options.Passcode.IsEmpty())
+                return null;
+
+            var bytes = Encoding.UTF8.GetBytes($"{options.Username}:{options.Passcode}");
+            return "Basic: " + Convert.ToBase64String(bytes, 0, bytes.Length);
         }
     }
 }
